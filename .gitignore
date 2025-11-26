@@ -12,6 +12,9 @@ coverage
 .next/
 out/
 
+# nestjs
+dist/
+
 # production
 build
 

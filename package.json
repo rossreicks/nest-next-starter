@@ -4,7 +4,8 @@
 	"description": "",
 	"type": "module",
 	"scripts": {
-		"dev": "ts-node apps/server/src/main.ts",
+		"dev": "pnpm start",
+		"start": "pnpm --filter ./packages/server start",
 		"lint": "pnpm exec biome lint --write",
 		"format": "pnpm exec biome format --write"
 	},

@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
+import { Example } from "@shared/types/example";
 
 @Injectable()
 export class AppService {
-	getHello(): string {
-		return "Hello World!";
+	async getHello(): Promise<Example> {
+		return await Promise.resolve({ name: "John", age: 30 });
 	}
 }

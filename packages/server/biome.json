@@ -1,4 +1,19 @@
 {
 	"root": false,
-	"extends": "//"
+	"extends": "//",
+	"javascript": {
+		"parser": {
+			"unsafeParameterDecoratorsEnabled": true
+		}
+	},
+	"linter": {
+		"rules": {
+			"correctness": {
+				"useHookAtTopLevel": "off"
+			},
+			"style": {
+				"useImportType": "off"
+			}
+		}
+	}
 }
