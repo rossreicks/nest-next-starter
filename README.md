@@ -21,8 +21,30 @@ The server integrates Next.js as middleware, allowing both applications to run o
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm 10.23.0+ (specified in `packageManager` field)
+- **[Node.js](https://nodejs.org/)** 18+ (includes Corepack)
+- **[pnpm](https://pnpm.io/)** 10.23.0+ (will be installed via Corepack)
+
+#### Installing pnpm with Corepack
+
+[Corepack](https://nodejs.org/api/corepack.html) comes bundled with Node.js 18+ and is the recommended way to install pnpm:
+
+```bash
+# Enable Corepack (if not already enabled)
+corepack enable
+
+# Install pnpm (version specified in package.json)
+corepack prepare pnpm@10.23.0 --activate
+
+# Verify installation
+pnpm --version
+```
+
+Alternatively, you can install pnpm directly:
+- **npm**: `npm install -g pnpm@10.23.0`
+- **Homebrew** (macOS): `brew install pnpm`
+- **Standalone script**: `curl -fsSL https://get.pnpm.io/install.sh | sh -`
+
+See the [pnpm installation guide](https://pnpm.io/installation) for more options.
 
 ### Installation
 
@@ -80,23 +102,23 @@ pnpm start
 ## 🛠️ Tech Stack
 
 ### Backend (NestJS)
-- **Framework**: NestJS 11.x
-- **Runtime**: Node.js with Express adapter
-- **Validation**: class-validator & class-transformer
-- **Configuration**: @nestjs/config
-- **Build**: SWC for fast compilation
+- **Framework**: [NestJS](https://nestjs.com/) 11.x
+- **Runtime**: [Node.js](https://nodejs.org/) with [Express](https://expressjs.com/) adapter
+- **Validation**: [class-validator](https://github.com/typestack/class-validator) & [class-transformer](https://github.com/typestack/class-transformer)
+- **Configuration**: [@nestjs/config](https://docs.nestjs.com/techniques/configuration)
+- **Build**: [SWC](https://swc.rs/) for fast compilation
 
 ### Frontend (Next.js)
-- **Framework**: Next.js 16.x with App Router
-- **React**: React 19.x
-- **Styling**: Tailwind CSS 4.x
-- **TypeScript**: TypeScript 5.x
+- **Framework**: [Next.js](https://nextjs.org/) 16.x with App Router
+- **React**: [React](https://react.dev/) 19.x
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) 4.x
+- **TypeScript**: [TypeScript](https://www.typescriptlang.org/) 5.x
 
 ### Development Tools
-- **Package Manager**: pnpm with workspaces
-- **Linting/Formatting**: Biome
-- **Git Hooks**: Lefthook
-- **Testing**: Jest (NestJS)
+- **Package Manager**: [pnpm](https://pnpm.io/) with workspaces
+- **Linting/Formatting**: [Biome](https://biomejs.dev/)
+- **Git Hooks**: [Lefthook](https://github.com/evilmartians/lefthook)
+- **Testing**: [Jest](https://jestjs.io/) (NestJS)
 
 ## 📁 Project Structure
 
@@ -156,7 +178,7 @@ import { Example } from "@shared/types/example";
 
 ## 🏥 Health Checks
 
-The application includes a health check endpoint powered by `@nestjs/terminus`:
+The application includes a health check endpoint powered by [@nestjs/terminus](https://github.com/nestjs/terminus):
 
 - **Endpoint**: `GET /api/health`
 - **Checks**: Memory usage (heap & RSS), disk storage
@@ -202,7 +224,7 @@ pnpm --filter server test:cov
 
 ## 🎨 Code Quality
 
-This project uses **Biome** for linting and formatting:
+This project uses [Biome](https://biomejs.dev/) for linting and formatting:
 
 ```bash
 # Check for issues
@@ -212,7 +234,7 @@ pnpm lint
 pnpm format
 ```
 
-Git hooks are configured via **Lefthook** to run linting before commits.
+Git hooks are configured via [Lefthook](https://github.com/evilmartians/lefthook) to run linting before commits.
 
 ### VS Code Setup
 
@@ -246,7 +268,7 @@ The production server runs both NestJS and Next.js on a single port.
 
 ### Railway / Nixpacks Deployment
 
-This template is optimized for **Railway** and **Nixpacks** deployment. Both platforms automatically detect the `build` and `start` commands from your root `package.json`:
+This template is optimized for [Railway](https://railway.app/) and [Nixpacks](https://nixpacks.com/) deployment. Both platforms automatically detect the `build` and `start` commands from your root `package.json`:
 
 - **Build Command**: `pnpm build` (automatically detected)
 - **Start Command**: `pnpm start` (automatically detected)
@@ -254,7 +276,7 @@ This template is optimized for **Railway** and **Nixpacks** deployment. Both pla
 
 #### Railway Setup
 
-1. Connect your repository to Railway
+1. Connect your repository to [Railway](https://railway.app/)
 2. Railway will automatically detect the build and start commands
 3. Set environment variables in Railway dashboard (if needed)
 4. Deploy!
@@ -286,6 +308,8 @@ A simple, production-ready `Dockerfile` is included in the root directory. It's 
 > **Note**: For even simpler deployments, Railway/Nixpacks can auto-detect and build your project without a Dockerfile. The Dockerfile is included for users who want more control or are deploying elsewhere.
 
 #### Building the Docker Image
+
+Requires [Docker](https://www.docker.com/) to be installed.
 
 ```bash
 # Build the image
