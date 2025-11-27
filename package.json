@@ -1,7 +1,7 @@
 {
-	"name": "nest-with-next",
+	"name": "nest-next-starter",
 	"version": "1.0.0",
-	"description": "Template for a NestJS application with a NextJS frontend",
+	"description": "⚡ Production-ready full-stack template: NestJS API + Next.js frontend in a pnpm monorepo.",
 	"type": "module",
 	"scripts": {
 		"dev": "pnpm --filter ./packages/server start:dev",

@@ -1,6 +1,6 @@
 # NestJS + Next.js Monorepo Template
 
-A production-ready template for building full-stack applications with NestJS backend and Next.js frontend in a monorepo structure.
+⚡ Production-ready full-stack template: NestJS API + Next.js frontend in a pnpm monorepo. Features single-port deployment, shared TypeScript types, Docker multi-stage builds, health checks, and Railway/Nixpacks support.
 
 ## Architecture
 
@@ -101,7 +101,7 @@ pnpm start
 ## 📁 Project Structure
 
 ```
-nest-with-next/
+nest-next-starter/
 ├── packages/
 │   ├── server/          # NestJS backend
 │   │   ├── src/
