@@ -1,4 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
 	DiskHealthIndicator,
 	HealthCheck,
@@ -15,6 +16,7 @@ export class HealthController {
 		private memory: MemoryHealthIndicator,
 		private disk: DiskHealthIndicator,
 		private http: HttpHealthIndicator,
+		private configService: ConfigService,
 	) {}
 
 	/**
@@ -24,11 +26,20 @@ export class HealthController {
 	@Get()
 	@HealthCheck()
 	check() {
+		const memoryHeapThreshold =
+			this.configService.get<number>("HEALTH_MEMORY_HEAP_THRESHOLD_MB", 150) *
+			1024 *
+			1024;
+		const memoryRSSThreshold =
+			this.configService.get<number>("HEALTH_MEMORY_RSS_THRESHOLD_MB", 500) *
+			1024 *
+			1024;
+
 		return this.health.check([
-			// Check memory usage - warn if using more than 300MB
-			() => this.memory.checkHeap("memory_heap", 300 * 1024 * 1024),
-			// Check RSS memory - warn if using more than 300MB
-			() => this.memory.checkRSS("memory_rss", 300 * 1024 * 1024),
+			// Check memory usage - warn if using more than configured threshold (default: 150MB)
+			() => this.memory.checkHeap("memory_heap", memoryHeapThreshold),
+			// Check RSS memory - warn if using more than configured threshold (default: 500MB)
+			() => this.memory.checkRSS("memory_rss", memoryRSSThreshold),
 			// Check disk storage - warn if using more than 80% of available space
 			() =>
 				this.disk.checkStorage("storage", {
@@ -61,9 +72,14 @@ export class HealthController {
 	@Get("live")
 	@HealthCheck()
 	async liveness(): Promise<HealthCheckResult> {
+		const memoryHeapThreshold =
+			this.configService.get<number>("HEALTH_MEMORY_HEAP_THRESHOLD_MB", 150) *
+			1024 *
+			1024;
+
 		return this.health.check([
 			// Just check memory to ensure the process hasn't crashed
-			() => this.memory.checkHeap("memory_heap", 300 * 1024 * 1024),
+			() => this.memory.checkHeap("memory_heap", memoryHeapThreshold),
 		]);
 	}
 }
