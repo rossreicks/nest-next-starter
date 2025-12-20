@@ -19,8 +19,7 @@
 		"db:migrate:up": "tsx scripts/run-migrations.ts up",
 		"db:migrate:down": "tsx scripts/run-migrations.ts down",
 		"db:seed": "tsx scripts/run-migrations.ts seed",
-		"db:clear": "tsx scripts/run-migrations.ts clear",
-		"db:types": "kysely-codegen --out-file=src/database/database.types.ts"
+		"db:clear": "tsx scripts/run-migrations.ts clear"
 	},
 	"dependencies": {
 		"@nestjs/axios": "^4.0.1",

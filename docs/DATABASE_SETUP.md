@@ -10,34 +10,121 @@ This guide documents how to set up PostgreSQL with Kysely ORM in a NestJS applic
 - [Architecture](#architecture)
 - [Usage](#usage)
 - [Migrations](#migrations)
-- [Type Generation](#type-generation)
+- [Type Definitions](#type-definitions)
 - [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
 Before starting, ensure you have:
 
-1. **PostgreSQL installed and running**
-   - macOS: `brew install postgresql@16 && brew services start postgresql@16`
-   - Ubuntu: `sudo apt install postgresql postgresql-contrib`
-   - Windows: Download from [postgresql.org](https://www.postgresql.org/download/)
+1. **Docker and Docker Compose installed**
+   - macOS: [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
+   - Ubuntu: `sudo apt install docker.io docker-compose`
+   - Windows: [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
 
-2. **A PostgreSQL database created**
-   ```bash
-   # Connect to PostgreSQL
-   psql postgres
+2. **Node.js and pnpm** (or npm/yarn)
 
-   # Create a database
-   CREATE DATABASE your_database_name;
+## PostgreSQL Setup with Docker
 
-   # Create a user (optional)
-   CREATE USER your_username WITH PASSWORD 'your_password';
+### 1. Create Docker Compose Configuration
 
-   # Grant privileges
-   GRANT ALL PRIVILEGES ON DATABASE your_database_name TO your_username;
-   ```
+Create a `docker-compose.yml` file in your server package root:
 
-3. **Node.js and pnpm** (or npm/yarn)
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nest-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nest_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+```
+
+### 2. Start PostgreSQL
+
+```bash
+# Start PostgreSQL in the background
+docker-compose up -d
+
+# Check if it's running
+docker-compose ps
+
+# View logs
+docker-compose logs postgres
+
+# Stop PostgreSQL
+docker-compose down
+
+# Stop and remove all data
+docker-compose down -v
+```
+
+### 3. Connect to PostgreSQL
+
+```bash
+# Connect using docker exec
+docker exec -it nest-postgres psql -U postgres -d nest_db
+
+# Or using psql if installed locally
+psql postgresql://postgres:postgres@localhost:5432/nest_db
+```
+
+### 4. Create Additional Databases (Optional)
+
+```bash
+# Connect to PostgreSQL
+docker exec -it nest-postgres psql -U postgres
+
+# Inside psql:
+CREATE DATABASE your_database_name;
+
+# Create a user (optional)
+CREATE USER your_username WITH PASSWORD 'your_password';
+
+# Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE your_database_name TO your_username;
+
+# Exit
+\q
+```
+
+### 5. Database Management Commands
+
+```bash
+# List all databases
+docker exec -it nest-postgres psql -U postgres -c "\l"
+
+# List all tables in a database
+docker exec -it nest-postgres psql -U postgres -d nest_db -c "\dt"
+
+# Describe a table
+docker exec -it nest-postgres psql -U postgres -d nest_db -c "\d table_name"
+
+# Run a SQL query
+docker exec -it nest-postgres psql -U postgres -d nest_db -c "SELECT * FROM users;"
+
+# Backup database
+docker exec nest-postgres pg_dump -U postgres nest_db > backup.sql
+
+# Restore database
+docker exec -i nest-postgres psql -U postgres nest_db < backup.sql
+```
 
 ## Installation
 
@@ -50,14 +137,13 @@ Add the following dependencies to your `package.json`:
 pnpm add kysely pg
 
 # Development dependencies
-pnpm add -D @types/pg kysely-codegen tsx
+pnpm add -D @types/pg tsx
 ```
 
 **Package purposes:**
 - `kysely` - Type-safe SQL query builder
 - `pg` - PostgreSQL client for Node.js
 - `@types/pg` - TypeScript types for pg
-- `kysely-codegen` - Generate TypeScript types from database schema
 - `tsx` - TypeScript execution tool (for running migration scripts)
 
 ### 2. Add NPM Scripts
@@ -70,8 +156,7 @@ Add these scripts to your `package.json`:
     "db:migrate:up": "tsx scripts/run-migrations.ts up",
     "db:migrate:down": "tsx scripts/run-migrations.ts down",
     "db:seed": "tsx scripts/run-migrations.ts seed",
-    "db:clear": "tsx scripts/run-migrations.ts clear",
-    "db:types": "kysely-codegen --out-file=src/database/database.types.ts"
+    "db:clear": "tsx scripts/run-migrations.ts clear"
   }
 }
 ```
@@ -96,18 +181,25 @@ Update your `tsconfig.json` to enable strict mode:
 Create a `.env` file in your server package root (copy from `env.example`):
 
 ```bash
+# Server Configuration
+PORT=4000
+NODE_ENV=development
+
+# Database Configuration
 # Option 1: Use DATABASE_URL (recommended)
-DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/nest_db
 
 # Option 2: Use individual variables
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=your_database_name
-DB_USER=your_username
-DB_PASSWORD=your_password
+DB_NAME=nest_db
+DB_USER=postgres
+DB_PASSWORD=postgres
 ```
 
 **Note:** The providers will prioritize `DATABASE_URL` if it's set, otherwise fall back to individual variables.
+
+**For Docker setup:** The default values above match the `docker-compose.yml` configuration.
 
 ## Architecture
 
@@ -119,11 +211,12 @@ packages/server/
 │   └── database/
 │       ├── database.module.ts      # NestJS module
 │       ├── database.providers.ts   # Provider factories
-│       └── database.types.ts       # Generated types
+│       └── database.types.ts       # Type definitions
 ├── migrations/
 │   └── 001_initial_schema.ts       # Migration files
 ├── scripts/
 │   └── run-migrations.ts           # Migration runner
+├── docker-compose.yml              # PostgreSQL container
 └── env.example                     # Environment template
 ```
 
@@ -205,11 +298,27 @@ export const kyselyProvider = {
 
 #### `src/database/database.types.ts`
 
-Initially a placeholder file that will be populated by `kysely-codegen`:
+Manually defined database types:
 
 ```typescript
+import type { ColumnType } from "kysely";
+
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+export interface UsersTable {
+  id: Generated<number>;
+  email: string;
+  name: string;
+  created_at: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface Database {
-  // Tables will be added here by kysely-codegen
+  users: UsersTable;
 }
 ```
 
@@ -396,57 +505,73 @@ Kysely automatically creates a `kysely_migration` table to track which migration
 # 1. Create a new migration file
 # migrations/003_add_comments_table.ts
 
-# 2. Run the migration
-pnpm db:migrate:up
+# 2. Update database.types.ts with the new table type
 
-# 3. Generate TypeScript types from the new schema
-pnpm db:types
+# 3. Run the migration
+pnpm db:migrate:up
 
 # 4. If something went wrong, rollback
 pnpm db:migrate:down
 ```
 
-## Type Generation
+## Type Definitions
 
-### Generating Types from Database Schema
+### Defining Types Manually
 
-After running migrations, generate TypeScript types that match your database schema:
+Database types are defined manually in `src/database/database.types.ts`. Update this file whenever you add or modify tables.
 
-```bash
-pnpm db:types
+### Type Helpers
+
+Use Kysely's type helpers for better type safety:
+
+**`Generated<T>`** - For columns with database defaults (like auto-increment IDs, timestamps):
+```typescript
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
 ```
 
-This runs `kysely-codegen` which:
-1. Connects to your database
-2. Introspects the schema
-3. Generates TypeScript interfaces in `src/database/database.types.ts`
+**`Timestamp`** - For timestamp columns that accept Date or string:
+```typescript
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+```
 
-### Generated Types Example
+### Adding a New Table
 
-After running migrations, your `database.types.ts` might look like:
+When you create a new migration, add the corresponding type:
 
 ```typescript
+// 1. Create the migration
+// migrations/002_add_posts_table.ts
+export async function up(db: Kysely<unknown>): Promise<void> {
+  await db.schema
+    .createTable("posts")
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("user_id", "integer", (col) => col.references("users.id"))
+    .addColumn("title", "varchar(255)", (col) => col.notNull())
+    .addColumn("content", "text")
+    .addColumn("created_at", "timestamp", (col) => col.defaultTo("now()"))
+    .execute();
+}
+
+// 2. Add the type to database.types.ts
+export interface PostsTable {
+  id: Generated<number>;
+  user_id: number;
+  title: string;
+  content: string | null;
+  created_at: Generated<Timestamp>;
+}
+
 export interface Database {
-  users: {
-    id: number;
-    email: string;
-    name: string;
-    created_at: Date;
-    updated_at: Date;
-  };
-  posts: {
-    id: number;
-    user_id: number;
-    title: string;
-    content: string | null;
-    created_at: Date;
-  };
+  users: UsersTable;
+  posts: PostsTable;  // Add here
 }
 ```
 
 ### Type Safety Benefits
 
-With generated types, you get:
+With properly defined types, you get:
 - **Autocomplete** for table and column names
 - **Type checking** for queries
 - **Compile-time errors** for invalid queries
@@ -462,25 +587,60 @@ const users = await db.selectFrom("userz").select(["id"]).execute();
 const users = await db.selectFrom("users").select(["emailz"]).execute();
 ```
 
+### Column Type Mapping
+
+Common PostgreSQL to TypeScript type mappings:
+
+| PostgreSQL Type | TypeScript Type | Notes |
+|----------------|-----------------|-------|
+| `serial`, `integer` | `number` | Use `Generated<number>` for serial |
+| `varchar`, `text` | `string` | |
+| `boolean` | `boolean` | |
+| `timestamp` | `Date` | Use `Timestamp` helper for flexibility |
+| `json`, `jsonb` | `unknown` or specific type | Define your JSON structure |
+| `uuid` | `string` | |
+| `numeric`, `decimal` | `string` | Precision numbers as strings |
+
 ### Workflow
 
-1. Create and run migrations
-2. Generate types: `pnpm db:types`
-3. Commit both migration files and generated types
-4. Types stay in sync with your database schema
+1. Create a migration file
+2. Update `database.types.ts` with the new table interface
+3. Add the table to the `Database` interface
+4. Run the migration: `pnpm db:migrate:up`
+5. Commit both migration and type files together
 
 ## Troubleshooting
 
-### Connection Issues
+### Docker Issues
 
-**Problem:** Cannot connect to PostgreSQL
+**Problem:** Docker container won't start
 
 **Solutions:**
-- Verify PostgreSQL is running: `pg_isready`
+- Check if port 5432 is already in use: `lsof -i :5432` (macOS/Linux) or `netstat -ano | findstr :5432` (Windows)
+- Stop any existing PostgreSQL services
+- Check Docker logs: `docker-compose logs postgres`
+- Ensure Docker Desktop is running
+- Try removing and recreating: `docker-compose down -v && docker-compose up -d`
+
+**Problem:** Container starts but can't connect
+
+**Solutions:**
+- Wait for healthcheck to pass: `docker-compose ps` (should show "healthy")
+- Check container logs: `docker-compose logs postgres`
+- Verify port mapping: `docker-compose ps` should show `0.0.0.0:5432->5432/tcp`
+- Test connection: `docker exec -it nest-postgres pg_isready -U postgres`
+
+### Connection Issues
+
+**Problem:** Cannot connect to PostgreSQL from application
+
+**Solutions:**
+- Verify PostgreSQL container is running: `docker-compose ps`
 - Check connection string format: `postgresql://user:password@host:port/database`
-- Ensure database exists: `psql -l`
-- Check firewall/network settings
-- Verify credentials
+- Ensure database exists: `docker exec -it nest-postgres psql -U postgres -l`
+- Check environment variables are loaded correctly
+- Verify credentials match docker-compose.yml
+- For Docker Desktop on Mac/Windows, use `localhost` not `127.0.0.1`
 
 ### Migration Errors
 
@@ -497,28 +657,50 @@ const users = await db.selectFrom("users").select(["emailz"]).execute();
 
 **Solution:**
 - Kysely tracks migrations in the `kysely_migration` table
-- Check: `SELECT * FROM kysely_migration;`
+- Check: `docker exec -it nest-postgres psql -U postgres -d nest_db -c "SELECT * FROM kysely_migration;"`
 - If needed, manually remove the entry (be careful!)
 
-### Type Generation Issues
+### Type Definition Issues
 
-**Problem:** `kysely-codegen` fails to connect
-
-**Solutions:**
-- Ensure database is running and accessible
-- Verify environment variables are loaded
-- Check that migrations have been run
-- Try running with explicit connection string:
-  ```bash
-  kysely-codegen --url postgresql://user:pass@localhost:5432/db --out-file=src/database/database.types.ts
-  ```
-
-**Problem:** Generated types are empty
+**Problem:** Types don't match database schema
 
 **Solution:**
-- Ensure migrations have been run: `pnpm db:migrate:up`
-- Check that tables exist: `psql -d your_db -c "\dt"`
-- Verify codegen is pointing to the correct database
+- Manually verify your type definitions match your migrations
+- Inspect the actual schema: `docker exec -it nest-postgres psql -U postgres -d nest_db -c "\d table_name"`
+- Update `database.types.ts` to match the actual schema
+
+**Problem:** TypeScript errors about missing columns
+
+**Solution:**
+- Check that you've added all columns from your migration to the type definition
+- Ensure nullable columns are marked with `| null`
+- Use `Generated<T>` for columns with database defaults
+
+### Data Persistence Issues
+
+**Problem:** Data is lost when container restarts
+
+**Solution:**
+- Ensure you're using the volume defined in docker-compose.yml
+- Check volumes: `docker volume ls`
+- Verify volume mount in docker-compose.yml: `postgres_data:/var/lib/postgresql/data`
+
+**Problem:** Need to reset database completely
+
+**Solution:**
+```bash
+# Stop and remove containers and volumes
+docker-compose down -v
+
+# Start fresh
+docker-compose up -d
+
+# Wait for healthy status
+docker-compose ps
+
+# Run migrations
+pnpm db:migrate:up
+```
 
 ### TypeScript Strict Mode Errors
 
@@ -550,7 +732,7 @@ const users = await db.selectFrom("users").select(["emailz"]).execute();
 
 1. **Always run migrations in order** - Use numbered prefixes (001, 002, etc.)
 2. **Write reversible migrations** - Always implement both `up()` and `down()`
-3. **Generate types after schema changes** - Keep types in sync with database
+3. **Keep types in sync** - Update `database.types.ts` when creating migrations
 4. **Use transactions for related operations** - Ensure data consistency
 5. **Index frequently queried columns** - Improve query performance
 6. **Use connection pooling** - Already configured via pg Pool
@@ -558,11 +740,16 @@ const users = await db.selectFrom("users").select(["emailz"]).execute();
 8. **Version control migrations** - Commit migration files to git
 9. **Test migrations** - Run up and down to verify they work
 10. **Document complex queries** - Add comments for maintainability
+11. **Use Docker volumes** - Persist data across container restarts
+12. **Backup regularly** - Use `pg_dump` for production data
+13. **Don't commit .env** - Keep credentials secure, use env.example as template
 
 ## Additional Resources
 
 - [Kysely Documentation](https://kysely.dev/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [PostgreSQL Docker Image](https://hub.docker.com/_/postgres)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [NestJS Documentation](https://docs.nestjs.com/)
 - [pg (node-postgres) Documentation](https://node-postgres.com/)
 
@@ -571,17 +758,20 @@ const users = await db.selectFrom("users").select(["emailz"]).execute();
 You now have a complete PostgreSQL + Kysely setup with:
 - ✅ Type-safe database queries
 - ✅ Automated migrations system
-- ✅ Type generation from schema
+- ✅ Manual type definitions for full control
 - ✅ NestJS dependency injection
 - ✅ Environment-based configuration
 - ✅ Seed and clear commands
 
 To recreate this in a new project, follow the steps in order:
-1. Install packages
-2. Configure environment variables
-3. Create database module and providers
-4. Create migrations folder and runner script
-5. Register DatabaseModule in AppModule
-6. Run migrations and generate types
-7. Start building your application!
+1. Create docker-compose.yml for PostgreSQL
+2. Start PostgreSQL: `docker-compose up -d`
+3. Install packages: `pnpm add kysely pg && pnpm add -D @types/pg tsx`
+4. Configure environment variables
+5. Create database module and providers
+6. Create migrations folder and runner script
+7. Create database.types.ts with your table definitions
+8. Register DatabaseModule in AppModule
+9. Run migrations: `pnpm db:migrate:up`
+10. Start building your application!
 
