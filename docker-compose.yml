@@ -18,8 +18,6 @@ services:
       retries: 5
     ports:
       - '5432:5432'
-    networks:
-      - nest-deploy-network
 
 volumes:
   postgres_data:
