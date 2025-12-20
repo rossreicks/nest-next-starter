@@ -32,6 +32,10 @@ const DB_NAME = process.env.DB_NAME;
 const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 
+type DB = {
+	[key: string]: any;
+};
+
 // Create database connection
 function createDb() {
 	const pool = DATABASE_URL
@@ -44,13 +48,13 @@ function createDb() {
 				password: DB_PASSWORD,
 			});
 
-	return new Kysely({
+	return new Kysely<DB>({
 		dialect: new PostgresDialect({ pool }),
 	});
 }
 
 // Create migrator instance
-async function createMigrator(db: Kysely<unknown>) {
+async function createMigrator(db: Kysely<DB>) {
 	return new Migrator({
 		db,
 		provider: new FileMigrationProvider({
@@ -174,7 +178,7 @@ async function clear() {
 	try {
 		// Get all table names
 		const tables = await db
-			.selectFrom("information_schema.tables")
+			.selectFrom(`information_schema.tables`)
 			.select("table_name")
 			.where("table_schema", "=", "public")
 			.where("table_type", "=", "BASE TABLE")
