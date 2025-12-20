@@ -179,7 +179,7 @@ async function clear() {
 	try {
 		// Get all table names
 		const tables = await db
-			.selectFrom("information_schema.tables")
+			.selectFrom(`information_schema.tables`)
 			.select("table_name")
 			.where("table_schema", "=", "public")
 			.where("table_type", "=", "BASE TABLE")
