@@ -7,6 +7,7 @@ import {
 	IsUrl,
 	Max,
 	Min,
+	MinLength,
 } from "class-validator";
 
 export enum Environment {
@@ -62,6 +63,29 @@ export class EnvironmentVariables {
 	@IsString()
 	@IsOptional()
 	DB_PASSWORD?: string;
+
+	// Better Auth Configuration. generate with: openssl rand -base64 32
+	@IsString()
+	@MinLength(32)
+	@IsOptional()
+	BETTER_AUTH_SECRET?: string;
+
+	// OAuth Providers
+	@IsString()
+	@IsOptional()
+	GITHUB_CLIENT_ID?: string;
+
+	@IsString()
+	@IsOptional()
+	GITHUB_CLIENT_SECRET?: string;
+
+	@IsString()
+	@IsOptional()
+	GOOGLE_CLIENT_ID?: string;
+
+	@IsString()
+	@IsOptional()
+	GOOGLE_CLIENT_SECRET?: string;
 }
 
 export type AppConfig = InstanceType<typeof EnvironmentVariables>;

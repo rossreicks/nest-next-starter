@@ -8,9 +8,11 @@ import {
 	HttpHealthIndicator,
 	MemoryHealthIndicator,
 } from "@nestjs/terminus";
+import { AllowAnonymous } from "@/auth";
 import { AppConfig } from "@/config/configuration";
 
 @Controller("health")
+@AllowAnonymous()
 export class HealthController {
 	constructor(
 		private health: HealthCheckService,

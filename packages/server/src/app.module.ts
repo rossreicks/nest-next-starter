@@ -1,7 +1,9 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { authModuleAsyncConfig } from "./auth";
 import { validate } from "./config/configuration";
 import { DatabaseModule } from "./database/database.module";
 import { HealthModule } from "./health/health.module";
@@ -13,8 +15,8 @@ import { HealthModule } from "./health/health.module";
 			validate,
 		}),
 		DatabaseModule,
+		AuthModule.forRootAsync(authModuleAsyncConfig),
 		HealthModule,
-		DatabaseModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
