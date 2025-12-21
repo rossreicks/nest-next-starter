@@ -1,6 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
+import { AppConfig } from "@/config/configuration";
 import type { Database } from "./database.types";
 
 /**
@@ -15,8 +16,8 @@ export const KYSELY_DB = "KYSELY_DB";
  */
 export const pgPoolProvider = {
 	provide: PG_POOL,
-	useFactory: (configService: ConfigService) => {
-		const databaseUrl = configService.get<string>("DATABASE_URL");
+	useFactory: (configService: ConfigService<AppConfig>) => {
+		const databaseUrl = configService.get("DATABASE_URL");
 
 		if (databaseUrl) {
 			// Use DATABASE_URL if provided
@@ -27,11 +28,11 @@ export const pgPoolProvider = {
 
 		// Fall back to individual environment variables
 		return new Pool({
-			host: configService.get<string>("DB_HOST", "localhost"),
-			port: configService.get<number>("DB_PORT", 5432),
-			database: configService.get<string>("DB_NAME"),
-			user: configService.get<string>("DB_USER"),
-			password: configService.get<string>("DB_PASSWORD"),
+			host: configService.get("DB_HOST", "localhost"),
+			port: configService.get("DB_PORT", 5432),
+			database: configService.get("DB_NAME"),
+			user: configService.get("DB_USER"),
+			password: configService.get("DB_PASSWORD"),
 		});
 	},
 	inject: [ConfigService],

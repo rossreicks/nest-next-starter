@@ -359,14 +359,14 @@ export class UserService {
 
   async findAll() {
     return await this.db
-      .selectFrom("users")
+      .selectFrom("user")
       .selectAll()
       .execute();
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     return await this.db
-      .selectFrom("users")
+      .selectFrom("user")
       .selectAll()
       .where("id", "=", id)
       .executeTakeFirst();
@@ -374,24 +374,24 @@ export class UserService {
 
   async create(email: string, name: string) {
     return await this.db
-      .insertInto("users")
+      .insertInto("user")
       .values({ email, name })
       .returningAll()
       .executeTakeFirstOrThrow();
   }
 
-  async update(id: number, name: string) {
+  async update(id: string, name: string) {
     return await this.db
-      .updateTable("users")
-      .set({ name, updated_at: new Date() })
+      .updateTable("user")
+      .set({ name, updatedAt: new Date() })
       .where("id", "=", id)
       .returningAll()
       .executeTakeFirst();
   }
 
-  async delete(id: number) {
+  async delete(id: string) {
     return await this.db
-      .deleteFrom("users")
+      .deleteFrom("user")
       .where("id", "=", id)
       .execute();
   }
@@ -403,7 +403,7 @@ export class UserService {
 ```typescript
 // Select with conditions
 const users = await db
-  .selectFrom("users")
+  .selectFrom("user")
   .select(["id", "email", "name"])
   .where("email", "like", "%@example.com")
   .orderBy("created_at", "desc")
@@ -412,20 +412,20 @@ const users = await db
 
 // Join tables
 const result = await db
-  .selectFrom("users")
-  .innerJoin("posts", "posts.user_id", "users.id")
-  .select(["users.name", "posts.title"])
+  .selectFrom("user")
+  .innerJoin("posts", "posts.user_id", "user.id")
+  .select(["user.name", "posts.title"])
   .execute();
 
 // Transactions
 await db.transaction().execute(async (trx) => {
-  await trx.insertInto("users").values({ email, name }).execute();
-  await trx.insertInto("profiles").values({ user_id, bio }).execute();
+  await trx.insertInto("user").values({ email, name }).execute();
+  await trx.insertInto("profile").values({ user_id, bio }).execute();
 });
 
 // Aggregations
 const count = await db
-  .selectFrom("users")
+  .selectFrom("user")
   .select(db.fn.count("id").as("total"))
   .executeTakeFirst();
 ```
@@ -446,27 +446,27 @@ import type { Kysely } from "kysely";
 
 export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
-    .createTable("posts")
+    .createTable("post")
     .addColumn("id", "serial", (col) => col.primaryKey())
     .addColumn("user_id", "integer", (col) =>
-      col.references("users.id").onDelete("cascade").notNull()
+      col.references("user.id").onDelete("cascade").notNull()
     )
     .addColumn("title", "varchar(255)", (col) => col.notNull())
     .addColumn("content", "text")
-    .addColumn("created_at", "timestamp", (col) =>
+    .addColumn("createdAt", "timestamp", (col) =>
       col.defaultTo("now()").notNull()
     )
     .execute();
 
   await db.schema
     .createIndex("posts_user_id_index")
-    .on("posts")
+    .on("post")
     .column("user_id")
     .execute();
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
-  await db.schema.dropTable("posts").execute();
+  await db.schema.dropTable("post").execute();
 }
 ```
 
@@ -545,26 +545,26 @@ When you create a new migration, add the corresponding type:
 // migrations/002_add_posts_table.ts
 export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
-    .createTable("posts")
-    .addColumn("id", "serial", (col) => col.primaryKey())
-    .addColumn("user_id", "integer", (col) => col.references("users.id"))
+    .createTable("post")
+    .addColumn("id", "text", (col) => col.primaryKey())
+    .addColumn("userId", "integer", (col) => col.references("user.id"))
     .addColumn("title", "varchar(255)", (col) => col.notNull())
     .addColumn("content", "text")
-    .addColumn("created_at", "timestamp", (col) => col.defaultTo("now()"))
+    .addColumn("createdAt", "timestamp", (col) => col.defaultTo("now()"))
     .execute();
 }
 
 // 2. Add the type to database.types.ts
 export interface PostsTable {
-  id: Generated<number>;
-  user_id: number;
+  id: Generated<string>;
+  userId: number;
   title: string;
   content: string | null;
-  created_at: Generated<Timestamp>;
+  createdAt: Generated<Timestamp>;
 }
 
 export interface Database {
-  users: UsersTable;
+  user: UserTable;
   posts: PostsTable;  // Add here
 }
 ```
@@ -577,14 +577,14 @@ With properly defined types, you get:
 - **Compile-time errors** for invalid queries
 
 ```typescript
-// ✅ Valid - TypeScript knows about the 'users' table and its columns
-const users = await db.selectFrom("users").select(["id", "email"]).execute();
+// ✅ Valid - TypeScript knows about the 'user' table and its columns
+const users = await db.selectFrom("user").select(["id", "email"]).execute();
 
 // ❌ Error - 'userz' table doesn't exist
 const users = await db.selectFrom("userz").select(["id"]).execute();
 
 // ❌ Error - 'emailz' column doesn't exist
-const users = await db.selectFrom("users").select(["emailz"]).execute();
+const users = await db.selectFrom("user").select(["emailz"]).execute();
 ```
 
 ### Column Type Mapping

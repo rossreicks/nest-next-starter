@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { config } from "dotenv";
 import {
 	FileMigrationProvider,
 	Kysely,
@@ -7,6 +8,8 @@ import {
 	PostgresDialect,
 } from "kysely";
 import { Pool } from "pg";
+
+config();
 
 /**
  * Database Migration Runner
@@ -143,7 +146,7 @@ async function seed() {
 
 		/*
 		await db
-			.insertInto('users')
+			.insertInto('user')
 			.values([
 				{ email: 'admin@example.com', name: 'Admin User' },
 				{ email: 'user@example.com', name: 'Regular User' },

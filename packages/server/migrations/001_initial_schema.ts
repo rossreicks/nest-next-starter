@@ -1,35 +1,25 @@
-import type { Kysely } from "kysely";
+import { type Kysely, sql } from "kysely";
 
 /**
- * Initial schema migration
- * Creates a users table as an example
+ * Migration: Create better-auth tables
  */
-export async function up(db: Kysely<unknown>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema
-		.createTable("users")
-		.addColumn("id", "serial", (col) => col.primaryKey())
-		.addColumn("email", "varchar(255)", (col) => col.notNull().unique())
-		.addColumn("name", "varchar(255)", (col) => col.notNull())
-		.addColumn("created_at", "timestamp", (col) =>
-			col.defaultTo("now()").notNull(),
+		.createTable("user")
+		.addColumn("id", "text", (col) => col.primaryKey())
+		.addColumn("name", "text", (col) => col.notNull())
+		.addColumn("email", "text", (col) => col.notNull().unique())
+		.addColumn("emailVerified", "boolean", (col) => col.notNull())
+		.addColumn("image", "text")
+		.addColumn("createdAt", "timestamptz", (col) =>
+			col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`),
 		)
-		.addColumn("updated_at", "timestamp", (col) =>
-			col.defaultTo("now()").notNull(),
+		.addColumn("updatedAt", "timestamptz", (col) =>
+			col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`),
 		)
-		.execute();
-
-	// Create an index on email for faster lookups
-	await db.schema
-		.createIndex("users_email_index")
-		.on("users")
-		.column("email")
 		.execute();
 }
 
-/**
- * Rollback migration
- * Drops the users table
- */
-export async function down(db: Kysely<unknown>): Promise<void> {
-	await db.schema.dropTable("users").execute();
+export async function down(db: Kysely<any>): Promise<void> {
+	await db.schema.dropTable("user").execute();
 }

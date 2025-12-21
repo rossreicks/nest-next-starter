@@ -17,14 +17,16 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 /**
- * Users table
+ * User table
  */
-export interface UsersTable {
-	id: Generated<number>;
-	email: string;
+export interface UserTable {
+	id: string;
 	name: string;
-	created_at: Generated<Timestamp>;
-	updated_at: Generated<Timestamp>;
+	email: string;
+	emailVerified: boolean;
+	image: string | null;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
 }
 
 /**
@@ -32,5 +34,5 @@ export interface UsersTable {
  * Add your tables here as you create them
  */
 export interface Database {
-	users: UsersTable;
+	user: UserTable;
 }
