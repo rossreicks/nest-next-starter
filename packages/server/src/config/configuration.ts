@@ -4,6 +4,7 @@ import {
 	IsNumber,
 	IsOptional,
 	IsString,
+	IsUrl,
 	Max,
 	Min,
 } from "class-validator";
@@ -36,7 +37,7 @@ export class EnvironmentVariables {
 	@IsOptional()
 	HEALTH_MEMORY_RSS_THRESHOLD_MB: number = 500;
 
-	@IsString()
+	@IsUrl()
 	@IsOptional()
 	DATABASE_URL?: string;
 
