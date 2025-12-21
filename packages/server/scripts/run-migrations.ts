@@ -10,6 +10,7 @@ import {
 import { Pool } from "pg";
 
 config();
+
 /**
  * Database Migration Runner
  *

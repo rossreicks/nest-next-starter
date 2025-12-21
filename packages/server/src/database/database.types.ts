@@ -30,9 +30,57 @@ export interface UserTable {
 }
 
 /**
+ * Session table (better-auth)
+ */
+export interface SessionTable {
+	id: string;
+	expiresAt: Timestamp;
+	token: string;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+	ipAddress: string | null;
+	userAgent: string | null;
+	userId: string;
+}
+
+/**
+ * Account table (better-auth)
+ */
+export interface AccountTable {
+	id: string;
+	accountId: string;
+	providerId: string;
+	userId: string;
+	accessToken: string | null;
+	refreshToken: string | null;
+	idToken: string | null;
+	accessTokenExpiresAt: Timestamp | null;
+	refreshTokenExpiresAt: Timestamp | null;
+	scope: string | null;
+	password: string | null;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+}
+
+/**
+ * Verification table (better-auth)
+ */
+export interface VerificationTable {
+	id: string;
+	identifier: string;
+	value: string;
+	expiresAt: Timestamp;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+}
+
+/**
  * Database interface
  * Add your tables here as you create them
  */
 export interface Database {
 	user: UserTable;
+	session: SessionTable;
+	account: AccountTable;
+	verification: VerificationTable;
 }
