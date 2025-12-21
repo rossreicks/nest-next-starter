@@ -89,18 +89,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
       kysely:
-<<<<<<< HEAD
-<<<<<<< HEAD
         specifier: ^0.28.9
         version: 0.28.9
-=======
-        specifier: ^0.27.4
-        version: 0.27.6
->>>>>>> 866a5e5 (add a better example)
-=======
-        specifier: ^0.28.9
-        version: 0.28.9
->>>>>>> 60a9cca (add auth module)
       next:
         specifier: 16.0.4
         version: 16.0.4(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -3302,21 +3292,9 @@ packages:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   kysely@0.28.9:
     resolution: {integrity: sha512-3BeXMoiOhpOwu62CiVpO6lxfq4eS6KMYfQdMsN/2kUCRNuF2YiEr7u0HLHaQU+O4Xu8YXE3bHVkwaQ85i72EuA==}
     engines: {node: '>=20.0.0'}
-=======
-  kysely@0.27.6:
-    resolution: {integrity: sha512-FIyV/64EkKhJmjgC0g2hygpBv5RNWVPyNCqSAD7eTCv6eFWNIi4PN1UvdSJGicN/o35bnevgis4Y0UDC0qi8jQ==}
-    engines: {node: '>=14.0.0'}
->>>>>>> 866a5e5 (add a better example)
-=======
-  kysely@0.28.9:
-    resolution: {integrity: sha512-3BeXMoiOhpOwu62CiVpO6lxfq4eS6KMYfQdMsN/2kUCRNuF2YiEr7u0HLHaQU+O4Xu8YXE3bHVkwaQ85i72EuA==}
-    engines: {node: '>=20.0.0'}
->>>>>>> 60a9cca (add auth module)
 
   lefthook-darwin-arm64@2.0.4:
     resolution: {integrity: sha512-AR63/O5UkM7Sc6x5PhP4vTuztTYRBeBroXApeWGM/8e5uZyoQug/7KTh7xhbCMDf8WJv6vdFeXAQCPSmDyPU3Q==}
@@ -7798,15 +7776,7 @@ snapshots:
 
   kind-of@6.0.3: {}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   kysely@0.28.9: {}
-=======
-  kysely@0.27.6: {}
->>>>>>> 866a5e5 (add a better example)
-=======
-  kysely@0.28.9: {}
->>>>>>> 60a9cca (add auth module)
 
   lefthook-darwin-arm64@2.0.4:
     optional: true
