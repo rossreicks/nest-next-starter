@@ -1,7 +1,5 @@
-packages:
-  - 'packages/*'
-
-injectWorkspacePackages: true
-
 onlyBuiltDependencies:
   - lefthook
+packages:
+  - packages/*
+injectWorkspacePackages: true
