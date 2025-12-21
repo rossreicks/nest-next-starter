@@ -38,6 +38,7 @@ const DB_PASSWORD = process.env.DB_PASSWORD;
 type DB = {
 	[key: string]: any;
 };
+
 // Create database connection
 function createDb() {
 	const pool = DATABASE_URL
@@ -56,7 +57,7 @@ function createDb() {
 }
 
 // Create migrator instance
-function createMigrator(db: Kysely<DB>) {
+async function createMigrator(db: Kysely<DB>) {
 	return new Migrator({
 		db,
 		provider: new FileMigrationProvider({
